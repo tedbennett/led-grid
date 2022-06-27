@@ -1,27 +1,32 @@
 import machine
 from neopixel import NeoPixel
 
-import time 
 LED_COUNT = 64
 LED_PIN = 5
 
+
 class Grid(NeoPixel):
-  def __init__(self):
-    super().__init__(machine.Pin(LED_PIN), LED_COUNT)
-    self.colours = [(0, 0, 0)] * 64
+    def __init__(self):
+        super().__init__(machine.Pin(LED_PIN), LED_COUNT)
+        self.colours = [(0, 0, 0)] * 64
+        self.delay = 5
+        self.timer = machine.Timer(1)
 
-  def set_colours(self, colours):
-    self.colours = colours
+    def set_delay(self, delay):
+        self.delay = delay
 
-  def draw(self):
-    for index, colour in enumerate(self.colours):
-      self[index] = colour
-    self.write()
+    def set_colours(self, colours):
+        self.timer.deinit()
+        self.colours = colours
+        self.timer.init(
+            mode=machine.Timer.ONE_SHOT, period=self.delay * 1000, callback=self.clear
+        )
 
-if __name__ == "__main__":
-  grid = Grid()
-  grid.colours = [(10,10,10)] * 64
-  grid.draw()
-  time.sleep(10)
-  grid.colours = [(0,0,0)] * 64
-  grid.draw()
+    def draw(self):
+        for index, colour in enumerate(self.colours):
+            self[index] = colour
+        self.write()
+
+    def clear(self, timer):
+        self.colours = [(0, 0, 0)] * 64
+        self.timer.deinit()
